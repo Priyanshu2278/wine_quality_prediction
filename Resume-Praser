@@ -1,0 +1,72 @@
+import json
+from docx import Document
+import re
+
+def parse_resume(doc_path):
+    doc = Document(doc_path)
+    data = {
+        "Name": "",
+        "Contact Information": {
+            "Phone": "",
+            "Email": ""
+        },
+        "Summary": "",
+        "Experience": [],
+        "Education": [],
+        "Skills": [],
+        "Certifications": [],
+        "Projects": [],
+        "Languages": [],
+        "Co-Curricular Activities": []
+    }
+
+    # Regex patterns for extracting information
+    patterns = {
+        "Name": re.compile(r'^Name:\s*(.*)'),
+        "Phone": re.compile(r'^Phone\s*(.*)'),
+        "Email": re.compile(r'^Email:\s*(.*)'),
+        "Summary": re.compile(r'^Summary:\s*(.*)'),
+        "Experience": re.compile(r'^Experience:\s*(.*)'),
+        "Education": re.compile(r'^Education:\s*(.*)'),
+        "Skills": re.compile(r'^Skills:\s*(.*)'),
+        "Certifications": re.compile(r'^Certifications:\s*(.*)'),
+        "Projects": re.compile(r'^Projects:\s*(.*)'),
+        "Languages": re.compile(r'^Languages:\s*(.*)'),
+        "Co-Curricular Activities": re.compile(r'^Co-Curricular Activities:\s*(.*)')
+    }
+
+    current_section = None
+
+    for para in doc.paragraphs:
+        text = para.text.strip()
+        if text.startswith("Name:"):
+            data["Name"] = patterns["Name"].match(text).group(1)
+        elif text.startswith("Phone:"):
+            data["Contact Information"]["Phone"] = patterns["Phone"].match(text).group(1)
+        elif text.startswith("Email:"):
+            data["Contact Information"]["Email"] = patterns["Email"].match(text).group(1)
+        elif text.startswith("Summary:"):
+            data["Summary"] = patterns["Summary"].match(text).group(1)
+        elif text.startswith("Experience:"):
+            current_section = "Experience"
+        elif text.startswith("Education:"):
+            current_section = "Education"
+        elif text.startswith("Skills:"):
+            current_section = "Skills"
+        elif text.startswith("Certifications:"):
+            current_section = "Certifications"
+        elif text.startswith("Projects:"):
+            current_section = "Projects"
+        elif text.startswith("Languages:"):
+            current_section = "Languages"
+        elif text.startswith("Co-Curricular Activities:"):
+            current_section = "Co-Curricular Activities"
+        elif current_section:
+            if current_section in ["Experience", "Education", "Skills", "Certifications", "Projects", "Languages", "Co-Curricular Activities"]:
+                data[current_section].append(text)
+
+    return data
+
+doc_path = r"C:\Users\barkh\Desktop\p_cv\Dummy.docx"
+parsed_data = parse_resume(doc_path)
+print(json.dumps(parsed_data, indent=4))
